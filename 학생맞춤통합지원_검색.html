@@ -3,130 +3,87 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>학생맞춤 통합지원 검색</title>
+<title>학생맞춤통합지원 안내 챗봇</title>
 </head>
-<body style="font-family:Malgun Gothic,sans-serif;background:#f5f7fa;margin:0;padding:16px;color:#333;">
-<div style="max-width:900px;margin:0 auto;">
-<h2 style="text-align:center;color:#1e3a5f;margin:0 0 4px;">학생맞춤 통합지원 검색</h2>
-<p style="text-align:center;color:#666;font-size:14px;margin:0 0 16px;">경북 지역 학생 지원 프로그램 총 165건</p>
-<div style="background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,0.1);margin-bottom:14px;">
-<select id="sf1" onchange="updateOrgFilter()" style="padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;margin-right:4px;min-width:140px;">
-<option value="">지원분야(전체)</option>
-<option value="경제 지원(장학금, 현금, 의료 등)">경제 지원(장학금, 현금, 의료 등)</option>
-<option value="기타">기타</option>
-<option value="돌봄">돌봄</option>
-<option value="심리 정서 지원">심리 정서 지원</option>
-<option value="이주배경">이주배경</option>
-<option value="장애">장애</option>
-<option value="특수교육 분야">특수교육 분야</option>
-<option value="학업 지원">학업 지원</option>
-</select>
-<select id="sf2" style="padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;margin-right:4px;min-width:160px;">
-<option value="">기관(전체)</option>
-</select>
-<input type="text" id="sf3" placeholder="키워드" style="padding:8px;border:1px solid #ccc;border-radius:6px;font-size:13px;width:120px;">
-<button type="button" onclick="doSearch()" style="padding:8px 12px;background:#3b82f6;color:#fff;border:none;border-radius:6px;cursor:pointer;">검색</button>
-<button type="button" onclick="doReset()" style="padding:8px 12px;background:#e5e7eb;color:#333;border:none;border-radius:6px;cursor:pointer;">초기화</button>
+<body style="font-family:'Malgun Gothic',sans-serif;background:#f0f4f8;margin:0;padding:0;height:100vh;display:flex;flex-direction:column;">
+
+<div style="background:linear-gradient(135deg,#1e3a5f,#3b82f6);color:#fff;padding:16px 20px;text-align:center;">
+<h1 style="margin:0;font-size:1.3rem;">학생맞춤통합지원 안내 챗봇</h1>
+<p style="margin:4px 0 0;font-size:0.85rem;opacity:0.9;">2025 가이드북 기반</p>
 </div>
-<p style="font-size:14px;color:#555;">검색 결과: <b id="cnt" style="color:#3b82f6;">0</b>건</p>
-<div id="res"></div>
+
+<div id="chatContainer" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;">
+<div style="background:#fff;padding:12px 16px;border-radius:12px;border-left:4px solid #3b82f6;max-width:85%;box-shadow:0 1px 3px rgba(0,0,0,0.08);">
+안녕하세요! 학생맞춤통합지원에 대해 궁금한 점을 물어보세요.<br><br>
+<b>예시 질문:</b><br>
+• 학생맞춤통합지원이 뭔가요?<br>
+• 통합지원팀은 어떻게 구성하나요?<br>
+• 위기학생 발견 절차가 어떻게 되나요?<br>
+• 경제적 어려움이 있는 학생 지원 방법은?
 </div>
+</div>
+
+<div style="padding:12px 16px;background:#fff;border-top:1px solid #e5e7eb;">
+<div style="display:flex;gap:8px;max-width:900px;margin:0 auto;">
+<input type="text" id="userInput" placeholder="질문을 입력하세요..." style="flex:1;padding:12px;border:1px solid #ddd;border-radius:8px;font-size:14px;" onkeypress="if(event.key==='Enter')sendMessage()">
+<button onclick="sendMessage()" id="sendBtn" style="padding:12px 20px;background:#3b82f6;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:600;">전송</button>
+</div>
+<p style="text-align:center;margin:8px 0 0;font-size:11px;color:#999;">AI 답변은 참고용입니다. 정확한 정보는 가이드북 원문을 확인해주세요.</p>
+</div>
+
 <script>
-var DATA=[{"id":1,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"굿네이버스","contact":"053-214-7120","detail":"신한위기가정재기지원사업(주거비, 생활비, 교육비, 의료비, 주거환경개선사업 등)","note":"500만원"},{"id":2,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"굿네이버스","contact":"053-214-7120","detail":"우리다문화장학재단 학업장학생(중위소득 100% 이하 가구), 매월활동","note":"100만원"},{"id":3,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"굿네이버스","contact":"053-214-7120","detail":"우리다문화장학재단 특기 장학생(예체능, 어학, 기술, 진로 전국대회 수상 경력)","note":"500만원"},{"id":4,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"굿네이버스","contact":"053-214-7120","detail":"주말비대면 식사지원","note":""},{"id":5,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"세이브더칠드런","contact":"-","detail":"위기아동지원사업(주거비, 생활비, 교육비, 의료비 등)","note":""},{"id":6,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"세이브더칠드런 남부지역본부","contact":"051-758-7731","detail":"영케어러(가족돌봄아동,청소년) 가정의 돌봄부담 경감 및 건강한 성장을 위한 식사지원사업","note":""},{"id":7,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"세이브더칠드런 동부지역본부","contact":"053-625-1600","detail":"미등록이주아동의 건강한 성장 지원 (건강관리, 심리, 정서회복, 돌봄, 주거환경개선)","note":""},{"id":8,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"세이브더칠드런 동부지역본부","contact":"053-625-1600","detail":"미등록이주아동의 건강한 성장 지원 (건강관리, 심리, 정서회복, 돌봄, 주거환경개선)","note":""},{"id":9,"category":"학업 지원","tags":["학업 지원"],"org":"세이브더칠드런 동부지역본부","contact":"053-625-1600","detail":"이주배경-비이주배경아동 통합 활동(도서를 매개로한 소그룹 기반의 아동 참여활동)","note":""},{"id":10,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"매일신문사 청소년 장학생","contact":"053-251-1411","detail":"경제사정이 곤란한 학생, 타의 모범이 되는 학생(기 수여학생 제외)","note":"100만원"},{"id":11,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"기아","contact":"02-2077-3962","detail":"기아드림 교통사고 유자녀 장학급 지금\n사망 혹은 중증후유장애 1~4급의 유자녀(초,중,고,대학생 대상) / 복지넷 홈페이지에서 신청","note":"초등200만"},{"id":12,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"교육급여바우처","contact":"1599-2000","detail":"교육급여바우처 누리집에서 신청/ 교육급여 학생은 복금기금 장학금 신청도 가능함","note":"초 연48만, 중 68만, 고 77만, "},{"id":13,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"두산 꿈나무 장학생 장학금","contact":"-","detail":"아동양육시설,아동일시보호시설, 소년소녀가장, 가정위탁, 한부모 초·중학생","note":"100만원"},{"id":14,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"두산 다문화 장학금","contact":"-","detail":"다문화가정 초·중학생","note":"100만원"},{"id":15,"category":"학업 지원","tags":["학업 지원"],"org":"안전공제회중앙회","contact":"02-6410-5014","detail":"학교안전사고 발생학생 대상 대학생 멘토링 매칭 사업(노트북, 캠 등 지원), 원격수업","note":""},{"id":16,"category":"기타","tags":["기타"],"org":"경상북도안전공제회","contact":"1899-7752 ","detail":"교원안심공제(보험), 교육활동 중 분쟁에 대해 컨설팅, 조정, 배상책임 지원, 교원 소송비용","note":""},{"id":17,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"한국소아당뇨인협의회","contact":"02-572-0366","detail":"만3세~만24세 소아당뇨인","note":"150만원"},{"id":18,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"고속도로 장학생","contact":"고속도도장학재단\n031-712-8942\n한국도로공사 홍보처\n054-811-1341~2","detail":"고속도로 교통사고, 건설유지 관리 안전사고 등으로 사망한 자녀 및 장애의 정도가 심한 장애인으로 판정된 자 또는 그의 자녀","note":"대학생 500만원, \n기초,차상위 학생 300만원, \n일반 학생 200만, \n미취학 아동 200만"},{"id":19,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"초록우산 어린이재단","contact":"054-273-7333","detail":"국민환아가정아동지원사업 (주거비, 생활비, 교육비, 의료비 등), 사례지원(초1~고3)","note":"교육비(회의후결정), 돌봄비(회의후결정), 의료비(100만원 이상), 주거비500"},{"id":20,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"초록우산 어린이재단","contact":"시군마다 상담 번호 다름\n070-8824-8254~7","detail":"가족돌봄아동 발굴 및 지원 사업 (청소년이 가장 역할을 하는 집에 돌봄, 교육, 건강, 주거 등을 지원)","note":"100만원"},{"id":21,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"초록우산 어린이재단","contact":"054-273-7333","detail":"초록우산 아이리더(예술,체육 재능) / 기준중위소득 100% 이하","note":"1000만원"},{"id":22,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"월드비전","contact":"053-781-2005","detail":"위기가정아동지원사업(주거비, 생활비, 교육비, 의료비 등)\n가족돌봄 청(소)년 지원사업 / 중위가구 120% 이하","note":"주돌봄자 300만, 부돌봄자 100만"},{"id":23,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"한국장학재단","contact":"1599-2290","detail":"다문화,탈북학생 대학생 멘토링/ 대면/온라인/혼합, 학습,진로,고민상담","note":""},{"id":24,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"한국장학재단","contact":"053-238-2224","detail":"복권기금 꿈사다리 장학사업 / (초5 이상) / 저소득층 자녀 – 꿈 장학금 / 다문화 가정 – 다문화 장학금\n멘토 지정 및 활동이 필수임","note":"초 월15만 / 중 월25만\n고 월35만 / 대 월45만"},{"id":25,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"한국다문화청소년협회","contact":"02-517-0119","detail":"다문화가족 자녀 장학금(특기) 지원 (북한이탈, 외국인 제외)","note":"500만원"},{"id":26,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"한국다문화청소년협회","contact":"02-517-0119","detail":"학업장학생(중,고,대학생)","note":"300만원"},{"id":27,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"한국다문화청소년협회","contact":"02-517-0119","detail":"한부모가정 양육비 지원사업","note":"300만원"},{"id":28,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"한국다문화청소년협회","contact":"02-517-0119","detail":"생계비 지원사업 (한국산업은행 제휴)","note":"180만원"},{"id":29,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"아이들과미래재단","contact":"070-4360-0346","detail":"체육 훈련 및 부상 치료 장학금(홈페이지 신청, 저소득층 지원)","note":"연300만원"},{"id":30,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"국립공원공단 가야산 생태탐방원(성주)","contact":"930-7011","detail":"청소년 사회성 증진 프로그램(1박 2일, 학폭 피,가해자 등) / 숙박형, 당일형, 2025.7.~2025.12.운영","note":""},{"id":31,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"국립공원공단 소백산 생태탐방원(영주)","contact":"630-5534","detail":"청소년 사회성 증진 프로그램(1박 2일, 학폭 피,가해자 등) / 숙박형, 당일형, 2025.7.~2025.12.운영","note":""},{"id":32,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"경상북도교육청","contact":"-","detail":"교육복지119(사고, 재해재난 위기학생 지원금 등)","note":""},{"id":33,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"경상북도교육청","contact":"-","detail":"교육복지지원망 학생맞춤복지지원","note":"20만"},{"id":34,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"경상북도교육청","contact":"체육건강과","detail":"난치병 학생 의료비 지원(심장병, 백혈병, 근이영양증,신장병, 혈우병 등)","note":""},{"id":35,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"경상북도교육청","contact":"-","detail":"스포츠꿈나무(월 40만원 장학금/선정 절차있음)","note":""},{"id":36,"category":"학업 지원","tags":["학업 지원"],"org":"경상북도교육청","contact":"-","detail":"건강장애학생 원격교육(1개월 이상 치료/매일 2시간 수업제공)","note":""},{"id":37,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"경상북도교육청","contact":"805-3523 / 학생생활과","detail":"정서행동특성검사 관심군 병의원 검사비 지원 / 30만원","note":"단,우선관리군은 50만"},{"id":38,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"경상북도교육청","contact":"-","detail":"학생 마음 바우처 사업 / 자살,자해 관련학생 진료,치료,상담 지원","note":"300만원"},{"id":39,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"경상북도교육청","contact":"-","detail":"눈건강 안경 지원(기초수급,차상위,한부모)","note":"8만원"},{"id":40,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"경상북도교육청","contact":"02-410-1291","detail":"스포츠강좌이용권지원사업(기초수급,차상위 5~18세)\n태권도 학원, 헬스장 등 이용 가능","note":"월10.5만원"},{"id":41,"category":"학업 지원","tags":["학업 지원"],"org":"경상북도교육청","contact":"054-805-3305","detail":"여름방학 예비교사 활용 멘토링 / 방학 중 학습 및 정서지도 프로그램","note":""},{"id":42,"category":"이주배경","tags":["이주배경"],"org":"경상북도교육청","contact":"054-805-3267","detail":"이주배경학생 상담통역 서비스 (일반, 긴급 상담통역)","note":""},{"id":43,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"경상북도교육청","contact":"-","detail":"마음건강(자살 위기)- 다들어줄개(앱), 라임(청소년SNS상담채널), 긴급번호 109(자살위기 통합 상담), 학생정신건강지원센터 누리집(관련 사업 확인 가능)","note":""},{"id":44,"category":"학업 지원","tags":["학업 지원"],"org":"경상북도교육청","contact":"054-805-3305","detail":"경계선 지능 및 난독 치료 /학생 치료 20회(1인당 130만원 내외 지원) / \n전문기관에서 학교로 찾아가 지도 실시","note":""},{"id":45,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"경상북도교육청 학부모지원센터","contact":"054-805-3518","detail":"자녀양육상담 / 자살,자해,학습장애,우울,정서행동,가출, 학교부적응, 성문제 등을 겪는 학생의 학부모와 가족대상 상담 지원/ 홈페이지를 통해 신청 / 1회 60분, 1인당 2회 지원","note":""},{"id":46,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"경북학교폭력피해자지원센터","contact":"054-850-1075","detail":"학폭피해자 개인상담,집단상담, 예방교육, 관계증진프로그램","note":""},{"id":47,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"학교폭력예방교육지원센터 누리집","contact":"-","detail":"아이디 : stopbullying054, 비번 : rudqnr054!@, 학급 내 예방교육 12차시 자료 탑재","note":""},{"id":48,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"경북스마트쉼센터","contact":"054-247-0076","detail":"인터넷/스마트폰 과의존 위험 학생/ 센터 내방상담 10~12회, 가정(학교)방문상담 6회","note":"무료"},{"id":49,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"한국드라마치료연구소영남센터","contact":"010-9521-4289","detail":"","note":""},{"id":50,"category":"심리 정서 지원 / 장애","tags":["심리 정서 지원","장애"],"org":"경북청소년성문화센터","contact":"054-436-0218","detail":"성교육(장애학생 포함)","note":""},{"id":51,"category":"심리 정서 지원 / 장애","tags":["심리 정서 지원","장애"],"org":"남서부생명사랑센터","contact":"053-218-1396","detail":"북동부센터/054-610-1396","note":""},{"id":52,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"(사)포항여성회 부설 경북여성통합상담소","contact":"054-284-0404\n 010-8104-7436","detail":"디지털성범죄피해자지원센터","note":""},{"id":53,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"전국 가족센터","contact":"1577-9337","detail":"2025년 다문화가족 자녀 교육활동비 지원 사업(초 연40만 / 중 연50만 / 고 연60만)\n교육급여를 받지 않는 기준중위소득 100% 이하 다문화 가족 7~18세","note":""},{"id":54,"category":"이주배경","tags":["이주배경"],"org":"전국 가족센터","contact":"1577-9337","detail":"2025년 다문화가족 자녀 교육활동비 지원 사업(초 연40만 / 중 연50만 / 고 연60만)\n교육급여를 받지 않는 기준중위소득 100% 이하 다문화 가족 7~19세","note":""},{"id":55,"category":"장애 / 특수교육 분야","tags":["장애","특수교육 분야"],"org":"칠곡교육지원청","contact":"-","detail":"장애학생 인권 보호지원단","note":""},{"id":56,"category":"장애 / 특수교육 분야","tags":["장애","특수교육 분야"],"org":"칠곡교육지원청","contact":"-","detail":"장애학생 행동 중재 지원","note":""},{"id":57,"category":"학업 지원","tags":["학업 지원"],"org":"칠곡교육지원청","contact":"-","detail":"찾아가는 맞춤형학습서비스(초1~5 정서행동문제로 인한 심각한 학습부진 지원, 25회기 내외)","note":""},{"id":58,"category":"학업 지원","tags":["학업 지원"],"org":"칠곡교육지원청","contact":"-","detail":"찾아가는 맞춤형 학습서비스 학생 심리검사비 지원(1인당 80만원 내외)","note":""},{"id":59,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"칠곡교육지원청","contact":"-","detail":"바로지원 365(자살,자해,학폭,관계개선지원)","note":""},{"id":60,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"칠곡교육지원청","contact":"-","detail":"불휘 멘토링(wee센터, 800-8039) / 정학폭,학업중단,정서지지 필요자에게 멘토링 연결, 14회의 멘토 진행","note":""},{"id":61,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"칠곡교육지원청","contact":"-","detail":"wee 집단상담(나너우리) / 5주 진행 (10명 이내, 위클래스 미배치교 우선)","note":""},{"id":62,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"칠곡교육지원청","contact":"-","detail":"칠곡wee센터 자문의 사업 (정신건강의학 자문의 상담 및 슈퍼비전)","note":"도내 동일"},{"id":63,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"칠곡교육지원청","contact":"-","detail":"전문기관 연계 및 치료비 지원","note":""},{"id":64,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"칠곡교육지원청","contact":"-","detail":"칠곡wee센터 온라인 집단 심리검사","note":""},{"id":65,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"한국교통안전공단","contact":"053-794-3814","detail":"자동차사고 피해가정 유자녀 장학금(사망 또는 1~4급장애)","note":"초등 25만원/분기 지원"},{"id":66,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"영남성폭력상담소","contact":"-","detail":"사전 성폭력 예방교육 및 심리상담 지원 / (찾아가는 심리상담)","note":""},{"id":67,"category":"장애 / 특수교육 분야","tags":["장애","특수교육 분야"],"org":"장애인부모회","contact":"-","detail":"학부모 상담·교육,열악한 환경의 학생 지원","note":""},{"id":68,"category":"장애 / 특수교육 분야","tags":["장애","특수교육 분야"],"org":"장애인스포츠강좌 이용권","contact":"1551-0078","detail":"월 11만원 이내 지원","note":""},{"id":69,"category":"장애 / 특수교육 분야","tags":["장애","특수교육 분야"],"org":"청소년 발달장애인 방과후활동서비스\n청도군장애인복지관","contact":"청도: 054-370-3240","detail":"6세~18세 / 월 66시간","note":""},{"id":70,"category":"장애 / 특수교육 분야","tags":["장애","특수교육 분야"],"org":"긍정적행동지원","contact":"-","detail":"PBS, 긍정적 행동 지원, 행동 중재","note":""},{"id":71,"category":"돌봄","tags":["돌봄"],"org":"112앱","contact":"-","detail":"전화신고, 문자신고, 녹음신고, 영상신고, 위장전화","note":""},{"id":72,"category":"장애 / 특수교육 분야","tags":["장애","특수교육 분야"],"org":"문화예술체육지원 사업","contact":"-","detail":"문화누리카드 (장애인스포츠강좌 이용권과 중복 가능)/ 기초 및 차상위가정","note":""},{"id":73,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"경북서부아동보호전문기관","contact":"-","detail":"아동학생 발생가정/ 심리검사·치료 /가족관계 회복 프로그램","note":""},{"id":74,"category":"학업 지원 / 심리 정서 지원","tags":["학업 지원","심리 정서 지원"],"org":"경상북도청소년지원센터 꿈드림","contact":"-","detail":"학업지원: 학원비 및 교재지원, 인터넷 동영상 강의 지원 / 취업지원: 동기 강화프로그램 등\n상담지원: 개인상담, 집단상담 / 건강지원: 건강검진, 추가검사, 건강교육","note":"주로 검정고시 지원 함"},{"id":75,"category":"학업 지원 / 심리 정서 지원","tags":["학업 지원","심리 정서 지원"],"org":"학교 밖 청소년 지원센터\nwww.kdream.or.kr","contact":"지역번호+1388 \n/도내 14개 기관있음","detail":"9~24세 학교 밖 청소년 \n상담/교육/진로직업/자립/건강 지원","note":""},{"id":76,"category":"학업 지원","tags":["학업 지원"],"org":"국립중앙청소년 디딤센터","contact":"070-4420-1957","detail":"정서행동에 어려움이 있는 청소년을 위한 거주형 치료재활시설 (경기도 용인시 처인구)\n월30만원, 4개월, 총120만원 / 기초, 차상위, 한부모는 면제","note":""},{"id":77,"category":"장애 / 특수교육 분야","tags":["장애","특수교육 분야"],"org":"발달장애인 실종예방 사업","contact":"064-803-3712","detail":"제주를 방문하는 발달장애인에게 GPS 7일간 무료 대여","note":""},{"id":78,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"(사단법인) 칠곡종합상담센터","contact":"973-8290~1","detail":"아동·청소년 심리지원서비스/진로적성,사회문화체험,학습코칭(기초수급자,차상위)\n학부모역량강화서비스-학교추천","note":""},{"id":79,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"청도교육지원청","contact":"wee센터: 054-370-1821","detail":"wee 집단상담 / 또래관계증진 / 감정조절 / 스마트폰 조절 / 음악치료","note":""},{"id":80,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"청도교육지원청","contact":"-","detail":"청도 학생상담자원봉사자연합회 / 학생 집단상담 실시","note":""},{"id":81,"category":"학업 지원","tags":["학업 지원"],"org":"청도교육지원청","contact":"053-370-1821","detail":"학업중단숙려/ 최소 2주~최대7주, 상담 및 체험","note":""},{"id":82,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"청도교육지원청","contact":"054-370-1142","detail":"교육복지안전망/ 교육복지사 미배치교 취약계층 학생의 사례관리 및 모니터링","note":""},{"id":83,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"청도군청 평생보장과","contact":"370-6163","detail":"특별지원 대상자 발굴 사업\n나이기준: 9세 이상~ 24세 이하 청소년 / 소득기준: 중위소득 100% 이하\n생활, 건강, 학업, 상담, 자립, 법률, 현금 급여 및 물질 서비스 / 신청: 복지로 누리집, 행정복지센터 방문","note":"다른 지역도 모두 있음"},{"id":84,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"청도군청 평생보장과","contact":"370-6163","detail":"여성용품 생리용품 지원사업 바우처 / 기초생활보장급여 수급자, 차상위계층, 법정한부모가정 가구의 9~24세 여성청소년 대상 생리용품 지원","note":""},{"id":85,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"청도군청 정신건강과","contact":"370-6296","detail":"","note":""},{"id":86,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"경상북도청소년상담복지센터\n(칠곡군청소년 상담복지센터)","contact":"971-0418","detail":"1388콜센터 및 일시보호(054-1388)\n청소년동반자프로그램(청소년동반자와 직접 연계지원) ,청소년 심리적 외상 지원사업(재난,사고,자살예방 학생)","note":"무료"},{"id":87,"category":"돌봄","tags":["돌봄"],"org":"경상북도청소년상담복지센터\n(칠곡군청소년 상담복지센터)","contact":"-","detail":"1388콜센터 및 일시보호(054-1388)\n청소년동반자프로그램(청소년동반자와 직접 연계지원) ,청소년 심리적 외상 지원사업(재난,사고,자살예방 학생)","note":""},{"id":88,"category":"돌봄","tags":["돌봄"],"org":"다온지역아동센터","contact":"054-971-8228","detail":"아동복지 서비스 지원 (돌봄, 교육, 석식 등)","note":""},{"id":89,"category":"돌봄","tags":["돌봄"],"org":"석적지역아동센터","contact":"054-974-8300","detail":"아동복지 서비스 지원 (돌봄, 교육, 석식 등)","note":""},{"id":90,"category":"돌봄","tags":["돌봄"],"org":"석적마을돌봄터","contact":"054-971-7900","detail":"밤 24시까지 긴급돌봄 / 무료이용(7세~12세 초등학생 대상, 정원 29명)","note":""},{"id":91,"category":"돌봄","tags":["돌봄"],"org":"칠곡군청소년수련관","contact":"979-5124","detail":"청소년방과후 아카데미","note":""},{"id":92,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"맑은향기 심리상담센터","contact":"-","detail":"개인 및 가족 상담 지원-위탁 (심리치료, 부모교육 등)","note":""},{"id":93,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"선재아동가족 상담연구소","contact":"-","detail":"개인 및 가족 상담 지원(심리치료, 부모교육 등)","note":""},{"id":94,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"왜관병원 정신건강의학과","contact":"-","detail":"정신보건 관련 상담 지원(심리검사, 심리치료, 약물치료 등)","note":""},{"id":95,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"정신건강복지센터","contact":"-","detail":"정신보건 관련 상담 지원 (심리검사, 심리치료, 약물치료 등)","note":""},{"id":96,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"건용의료재단 왜관병원","contact":"-","detail":"971-2881, 전문의 진료 및 심리평가 / 심리상담 비용 지원사업, 단 주기적 내원 필요","note":""},{"id":97,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"석적읍사무소","contact":"979 - 5507","detail":"맞춤형 복지/결식 아동 급식 지원","note":""},{"id":98,"category":"돌봄","tags":["돌봄"],"org":"칠곡경찰서 여성청소년계","contact":"970-0338","detail":" ","note":""},{"id":99,"category":"돌봄","tags":["돌봄"],"org":"칠곡경찰서 아동학대예방","contact":" 970-0337","detail":"","note":""},{"id":100,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"드림스타트","contact":"054-971-0950","detail":"위기가구 사례관리 지원, 주거환경개선사업, 기초학습방문지도(공공 및 민간자원 연계)","note":""},{"id":101,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"희망복지지원단","contact":"-","detail":"위기가구 사례관리 지원 (공공 및 민간자원 연계)","note":""},{"id":102,"category":"이주배경","tags":["이주배경"],"org":"칠곡군가족센터","contact":"054-975-0831\n\n 054-975-0840","detail":"다문화 및 위기가족 지원(가족상담, 가족역량강화 지원 등)\n결혼이민자 한국어교육/ 다문화가족자녀 기초학습지원프로그램\n아픈아이 병원동행, 모이소 경상북도 앱에서 신청","note":""},{"id":103,"category":"돌봄","tags":["돌봄"],"org":"칠곡군가족센터","contact":"054-975-0831\n\n 054-975-0841","detail":"다문화 및 위기가족 지원(가족상담, 가족역량강화 지원 등)\n결혼이민자 한국어교육/ 다문화가족자녀 기초학습지원프로그램\n아픈아이 병원동행, 모이소 경상북도 앱에서 신청","note":""},{"id":104,"category":"돌봄","tags":["돌봄"],"org":"청도군가족센터","contact":"054-373-7420","detail":"아픈아이 병원동행 /모이소 경상북도 앱에서 신청 / 가벼운 질환, 약처방 등","note":""},{"id":105,"category":"기타","tags":["기타"],"org":"종합자원봉사센터","contact":"054-971-3944","detail":"자원봉사자 등록/활동 지원","note":""},{"id":106,"category":"기타","tags":["기타"],"org":"지역자활센터","contact":"-","detail":"취약계층 자활사업 지원(취업 연계, 교육비 지원 등)","note":""},{"id":107,"category":"기타","tags":["기타"],"org":"청도군 자원봉사센터","contact":"373-2477","detail":"","note":""},{"id":108,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"청도군청소년상담복지센터","contact":"054-370-1612","detail":"심리검사(초5~중,고)\n회기프로그램(진로탐색, 인터넷스마트폰과의존, 성폭력예방, 또래상담, 놀이치료, 스트레스관리 등)\n교육(청소년성교육, 청소년인권교육, 학폭예방교육 등)","note":""},{"id":109,"category":"돌봄","tags":["돌봄"],"org":"이서면작은도서관(이서면)","contact":"-","detail":"주말 아동 돌봄/매주 토요일 13시~17시 4시간","note":""},{"id":110,"category":"돌봄","tags":["돌봄"],"org":"청도작은도서관(풍각면)","contact":"-","detail":"주말 아동 돌봄/매주 토요일 13시~17시 4시간","note":""},{"id":111,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"정성훈 정신건강의학과","contact":"-","detail":"심리검사 및 진료","note":"청도청연계기관"},{"id":112,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"새롬 정신건강의학과","contact":"-","detail":"심리검사 및 진료","note":"청도청연계기관"},{"id":113,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"청도 메타병원","contact":"-","detail":"전문의 면담(학부모, 학생, 교원) / 청도 위센터(370-1822)로 신청","note":"청도청연계기관"},{"id":114,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"대동병원","contact":"-","detail":"심리검사 및 진료","note":"청도청연계기관"},{"id":115,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"선재아동가족상담연구소","contact":"-","detail":"개인상담, 가족상담, 심리평가","note":"청도청연계기관"},{"id":116,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"안진경 예술심리치료센터","contact":"-","detail":"매체를 활용한 개인상담 및 집단상담, 심리정서적 지원 ","note":"청도청연계기관"},{"id":117,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"위헤븐 심리상담연구소","contact":"-","detail":"종합심리검사, 개인 및 집단상담","note":"청도청연계기관"},{"id":118,"category":"돌봄","tags":["돌봄"],"org":"돌봄교실","contact":"-","detail":"정규수업종료~6시까지 돌봄 제공","note":""},{"id":119,"category":"돌봄","tags":["돌봄"],"org":"늘봄교실","contact":"-","detail":"정규수업종료 후 2시간 교육프로그램 제공","note":""},{"id":120,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"Wee","contact":"-","detail":"위기학생 마음건강지원 검사비 지원(정서행동,자해,기초수급자가 아닌 경우)","note":""},{"id":121,"category":"돌봄","tags":["돌봄"],"org":"연계형 돌봄교실","contact":"-","detail":"늘봄/방과후 종료 후부터 4시30분까지 돌봄","note":""},{"id":122,"category":"돌봄","tags":["돌봄"],"org":"방과후학교","contact":"-","detail":"특기적성 2개 수업 제공(방학중 미제공)","note":"무료"},{"id":123,"category":"학업 지원","tags":["학업 지원"],"org":"희망사다리","contact":"-","detail":"방학중 30시간 학습 제공","note":""},{"id":124,"category":"기타","tags":["기타"],"org":"회복적생활교육","contact":"-","detail":"","note":""},{"id":125,"category":"학업 지원","tags":["학업 지원"],"org":"한글책임교육","contact":"-","detail":"학기중 3학년 대상 한글교육 50시간 제공","note":""},{"id":126,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"교육복지우선지원","contact":"-","detail":"아침머꼬: 복지대상학생중 15명 선발, 요리교실: 복지대상학생중 44명 선발\n가족문화체험키트:복지대상학생 15가정, 기초수급권자 치료비/검사비 지원","note":""},{"id":127,"category":"이주배경","tags":["이주배경"],"org":"다문화 프로그램","contact":"-","detail":"KT랜선한글교실(3월~8월,한글교육,문화교육)\n알림장번역서비스( 1~3학년:ODS 활용 / 4~6학년 클래스팅 자동번역)\n이중언어(베트남어) 교실, 징검다리 과정(한글수업) ","note":""},{"id":128,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"온(溫)맞춤형 생활 지원","contact":"-","detail":"아침머꼬(아침밥제공) /생활지원(생필품, 반찬, 난방비 등) /의복지원(옷, 운동화 등) / 안경지원/ 책가방지원","note":""},{"id":129,"category":"학업 지원","tags":["학업 지원"],"org":"기초학력 탄탄 지원","contact":"-","detail":"디딤돌 교실(한글 지도) / 배움 찬찬이 교실(기초 학력 지도)/ 북스타트(도서 및 문제집 지원) /방과후 교실(교재비, 재료비 지원)","note":""},{"id":130,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"심리정서지원","contact":"-","detail":"심리 검사 및 진료비 지원 / 놀이치료 및 심리코칭 /위기가정 상담/어울림 교실 및 또래 관계 형성 지원","note":""},{"id":131,"category":"경제 지원(장학금, 현금, 의료 등)","tags":["경제 지원(장학금, 현금, 의료 등)"],"org":"문화체험지원","contact":"-","detail":"학생체험활동비 지원가족문화체험활동 지원","note":""},{"id":132,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"대구 대동병원","contact":"053-663-1000","detail":"종합심리검사","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":133,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"경산 세명병원","contact":"053-819-8800","detail":"종합심리검사","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":134,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"새롬정신건강의학과의원","contact":"053-813-8875","detail":"종합심리검사","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":135,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"시지 율정신건강의학과","contact":"053-792-7570","detail":"종합심리검사","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":136,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"윤은미심리상담센터","contact":"053-813-3973","detail":"심리치료","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":137,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"아이햇살심리학습연구소","contact":"053-475-5253","detail":"인지행동치료","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":138,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"동대구아동발달센터","contact":"053-961-5637","detail":"언어치료","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":139,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"한국심리발달센터","contact":"053-815-9492","detail":"심리상담, 심리치료","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":140,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"시지 해맑은언어치료 심리상담센터","contact":"053-792-4115","detail":"언어치료","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":141,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"행복나무마음연구소","contact":"053-811-7570","detail":"심리상담","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":142,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"이음언어심리발달센터","contact":"053-262-7577","detail":"발달, 특수교육 등 언어치료","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":143,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"맘언어심리상담센터","contact":"053-270-4408","detail":"언어치료 및 상담","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":144,"category":"심리 정서 지원","tags":["심리 정서 지원"],"org":"칠곡경북대병원","contact":"053-200-2114","detail":"심리검사","note":"기초학력거점지원센터 치료비 지원 연계 기관"},{"id":145,"category":"학업 지원","tags":["학업 지원"],"org":"정인예술학교","contact":"054-610-9922","detail":"대안교육 (민간)위탁교육기관(중) 특별교육, 출석정지 학생, 기타 희망학생","note":"포항"},{"id":146,"category":"학업 지원","tags":["학업 지원"],"org":"포항청자연학교","contact":"054-248-1318","detail":"대안교육 (민간)위탁교육기관(고) 특별교육, 출석정지 학생, 기타 희망학생","note":"포항"},{"id":147,"category":"학업 지원","tags":["학업 지원"],"org":"해려문화예술학교","contact":"054-610-3332","detail":"대안교육 (민간)위탁교육기관(고) 특별교육, 출석정지 학생, 기타 희망학생","note":"포항"},{"id":148,"category":"학업 지원","tags":["학업 지원"],"org":"경주늘봄학교","contact":"054-771-5330","detail":"대안교육 (민간)위탁교육기관(중,고) 특별교육, 출석정지 학생, 기타 희망학생","note":"경주"},{"id":149,"category":"학업 지원","tags":["학업 지원"],"org":"김천희망학교","contact":"070-4652-0054","detail":"대안교육 (민간)위탁교육기관(중,고) 특별교육, 출석정지 학생, 기타 희망학생","note":"김천"},{"id":150,"category":"학업 지원","tags":["학업 지원"],"org":"나섬학교","contact":"054-857-9177","detail":"대안교육 (민간)위탁교육기관(고) 특별교육, 출석정지 학생, 기타 희망학생","note":"안동"},{"id":151,"category":"학업 지원","tags":["학업 지원"],"org":"다문화대안예술학교","contact":"054-443-3350","detail":"대안교육 (민간)위탁교육기관(초,중) 특별교육, 출석정지 학생, 기타 희망학생","note":"구미"},{"id":152,"category":"학업 지원","tags":["학업 지원"],"org":"꿈과재능학교","contact":"054-458-0584","detail":"대안교육 (민간)위탁교육기관(중) 특별교육, 출석정지 학생, 기타 희망학생","note":"구미"},{"id":153,"category":"학업 지원","tags":["학업 지원"],"org":"파로스학교","contact":"054-476-1318","detail":"대안교육 (민간)위탁교육기관(고) 특별교육, 출석정지 학생, 기타 희망학생","note":"구미"},{"id":154,"category":"학업 지원","tags":["학업 지원"],"org":"해오름학교","contact":"054-440-1211","detail":"대안교육 (민간)위탁교육기관(고) 특별교육, 출석정지 학생, 기타 희망학생","note":"구미"},{"id":155,"category":"학업 지원","tags":["학업 지원"],"org":"상주희망학교","contact":"054-533-7490","detail":"대안교육 (민간)위탁교육기관(중,고) 특별교육, 출석정지 학생, 기타 희망학생","note":"상주"},{"id":156,"category":"학업 지원","tags":["학업 지원"],"org":"소나무학교","contact":"053-850-1183","detail":"대안교육 (민간)위탁교육기관(중) 특별교육, 출석정지 학생, 기타 희망학생","note":"경산"},{"id":157,"category":"학업 지원","tags":["학업 지원"],"org":"경산청자연학교","contact":"053-801-1318","detail":"대안교육 (민간)위탁교육기관(고) 특별교육, 출석정지 학생, 기타 희망학생","note":"경산"},{"id":158,"category":"학업 지원","tags":["학업 지원"],"org":"동일프로이데제2학교","contact":"054-701-0008","detail":"대안교육 (민간)위탁교육기관(중,고) 특별교육, 출석정지 학생, 기타 희망학생","note":"성주"},{"id":159,"category":"학업 지원","tags":["학업 지원"],"org":"가톨릭푸름터","contact":"053-764-8536","detail":"대안교육 (민간)위탁교육기관(중,고) 특별교육, 출석정지 학생, 기타 희망학생","note":"대구/미혼모 위탁기관"},{"id":160,"category":"학업 지원","tags":["학업 지원"],"org":"대동병원","contact":"053-746-7382","detail":"대안교육 (민간)위탁교육기관(중,고) 특별교육, 출석정지 학생, 기타 희망학생","note":"대구/병원형 위탁기관"},{"id":161,"category":"학업 지원","tags":["학업 지원"],"org":"경주한국어교육센터","contact":"054-741-0180","detail":"대안교육 공립위탁교육기관 (초/중/고) 특별교육, 출석정지 학생, 기타 희망학생","note":"다문화가정 대상 기관"},{"id":162,"category":"학업 지원","tags":["학업 지원"],"org":"국립대구청소년 디딤센터","contact":"053-665-6900","detail":"대안교육 국립위탁교육기관 (초/중/고) 특별교육, 출석정지 학생, 기타 희망학생","note":"대구"},{"id":163,"category":"학업 지원","tags":["학업 지원"],"org":"국립중앙청소년 디딤센터","contact":"031-333-1900","detail":"대안교육 국립위탁교육기관 (초/중/고) 특별교육, 출석정지 학생, 기타 희망학생","note":"경기"},{"id":164,"category":"학업 지원","tags":["학업 지원"],"org":"국립청소년 인터넷드림마을","contact":"063-323-2282","detail":"대안교육 국립위탁교육기관 (중/고) 특별교육, 출석정지 학생, 기타 희망학생","note":"전북"},{"id":165,"category":"학업 지원","tags":["학업 지원"],"org":"해맑음센터","contact":"070-7119-4119","detail":"대안교육 국립위탁교육기관 (초/중/고) 특별교육, 출석정지 학생, 기타 희망학생","note":"충북"}];
+var WORKER_URL = 'https://gemini-proxy.ska13g.workers.dev/';
 
-function getOrgsForTag(tag){
-var orgs={};
-for(var i=0;i<DATA.length;i++){
-var d=DATA[i];
-if(tag==""){
-orgs[d.org]=1;
-}else{
-for(var j=0;j<d.tags.length;j++){
-if(d.tags[j]==tag){
-orgs[d.org]=1;
-break;
-}
-}
-}
-}
-var arr=[];
-for(var k in orgs)arr.push(k);
-arr.sort();
-return arr;
+function addMessage(text, type) {
+  var container = document.getElementById('chatContainer');
+  var div = document.createElement('div');
+  if(type === 'user') {
+    div.style.cssText = 'background:#3b82f6;color:#fff;padding:12px 16px;border-radius:12px;max-width:85%;margin-left:auto;';
+  } else {
+    div.style.cssText = 'background:#fff;padding:12px 16px;border-radius:12px;border-left:4px solid #3b82f6;max-width:85%;box-shadow:0 1px 3px rgba(0,0,0,0.08);';
+  }
+  div.innerHTML = text.replace(/\n/g, '<br>');
+  container.appendChild(div);
+  container.scrollTop = container.scrollHeight;
+  return div;
 }
 
-function updateOrgFilter(){
-var tag=document.getElementById("sf1").value;
-var sel=document.getElementById("sf2");
-var orgs=getOrgsForTag(tag);
-sel.innerHTML='<option value="">기관(전체)</option>';
-for(var i=0;i<orgs.length;i++){
-var o=orgs[i];
-var label=o.length>20?o.substring(0,20)+"...":o;
-sel.innerHTML+='<option value="'+o+'">'+label+'</option>';
+async function sendMessage() {
+  var input = document.getElementById('userInput');
+  var question = input.value.trim();
+  if(!question) return;
+  
+  document.getElementById('sendBtn').disabled = true;
+  addMessage(question, 'user');
+  input.value = '';
+  
+  var loadingDiv = addMessage('답변 생성 중...', 'bot');
+  
+  try {
+    var response = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: question })
+    });
+    
+    var data = await response.json();
+    loadingDiv.remove();
+    
+    if(data.candidates && data.candidates[0] && data.candidates[0].content) {
+      var answer = data.candidates[0].content.parts[0].text;
+      addMessage(answer, 'bot');
+    } else if(data.error) {
+      addMessage('오류: ' + data.error.message, 'bot');
+    } else {
+      addMessage('응답을 처리할 수 없습니다.', 'bot');
+    }
+  } catch(e) {
+    loadingDiv.remove();
+    addMessage('오류가 발생했습니다: ' + e.message, 'bot');
+  }
+  
+  document.getElementById('sendBtn').disabled = false;
 }
-doSearch();
-}
-
-function getColor(c){
-var o="";
-if(c.indexOf("경제")>-1)o="border-left:4px solid #10b981;";
-else if(c.indexOf("심리")>-1)o="border-left:4px solid #8b5cf6;";
-else if(c.indexOf("학업")>-1)o="border-left:4px solid #f59e0b;";
-else if(c.indexOf("돌봄")>-1)o="border-left:4px solid #ec4899;";
-else if(c.indexOf("이주")>-1)o="border-left:4px solid #06b6d4;";
-else if(c.indexOf("장애")>-1||c.indexOf("특수")>-1)o="border-left:4px solid #ef4444;";
-else o="border-left:4px solid #6b7280;";
-return o;
-}
-
-function doSearch(){
-var t=document.getElementById("sf1").value;
-var o=document.getElementById("sf2").value;
-var k=document.getElementById("sf3").value.toLowerCase();
-var arr=[];
-for(var i=0;i<DATA.length;i++){
-var d=DATA[i];
-var ok=true;
-if(t!=""){var found=false;for(var j=0;j<d.tags.length;j++){if(d.tags[j]==t)found=true;}if(!found)ok=false;}
-if(o!=""&&d.org!=o)ok=false;
-if(k!=""){var txt=(d.org+" "+d.detail+" "+d.note+" "+d.category).toLowerCase();if(txt.indexOf(k)<0)ok=false;}
-if(ok)arr.push(d);
-}
-showResult(arr);
-}
-
-function showResult(arr){
-document.getElementById("cnt").innerHTML=arr.length;
-var h="";
-if(arr.length==0){
-h="<p style='text-align:center;color:#999;padding:30px;'>검색 결과가 없습니다.</p>";
-}else{
-for(var i=0;i<arr.length;i++){
-var d=arr[i];
-var sty=getColor(d.category);
-var ct=(d.contact&&d.contact!="")?"연락처: "+d.contact:"";
-var nt=(d.note&&d.note!="")?" | "+d.note:"";
-h=h+"<div style='background:#fff;padding:12px 14px;margin-bottom:8px;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08);"+sty+"'>";
-h=h+"<div style='font-weight:bold;font-size:15px;color:#111;margin-bottom:4px;'>"+d.org+"</div>";
-h=h+"<div style='font-size:13px;color:#444;margin-bottom:4px;'>"+d.detail+"</div>";
-h=h+"<div style='font-size:12px;color:#888;'>"+ct+nt+"</div>";
-h=h+"</div>";
-}
-}
-document.getElementById("res").innerHTML=h;
-}
-
-function doReset(){
-document.getElementById("sf1").value="";
-document.getElementById("sf2").value="";
-document.getElementById("sf3").value="";
-updateOrgFilter();
-}
-
-window.onload=function(){
-updateOrgFilter();
-};
 </script>
 </body>
 </html>
